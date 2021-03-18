@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom, JpaSpecificationExecutor {
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
@@ -67,7 +67,7 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
     @Query("select m from Member m")
     List<Member> findMemberEntityGraph();
 
-//    @EntityGraph(attributePaths = {"team"})
+    //    @EntityGraph(attributePaths = {"team"})
     @EntityGraph(value = "Member.all")
     List<Member> findEntityGraphByUsername(@Param("username") String username);
 
@@ -77,4 +77,24 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Member> findLockByUsername(String username);
+
+    List<UsernameOnly> findProjectionsByUsername(@Param("username") String username);
+
+    <T> List<T> findDtoProjectionsByUsername(@Param("username") String username, Class<T> type);
+
+
+    @Query(value = "select username from member where username = ?", nativeQuery = true)
+    Member findByNativeQuery(String username);
+
+
+    /**
+     * Native Query 를 사용할 때는 반환값의 Interface 의 getXXX 의 xxx 와 조회할 필드 이름을 <br/>
+     * alias 를 이용해서 일치시킨다.<br/>
+     * 페이징 기능도 사용할 경우에는 countQuery 도 따로 작성을 해주고, 마지막에 nativeQuery = true 값을 주면 된다.
+     */
+    @Query(value = "select m.member_id as id, m.username, t.name as teamName " +
+            "from member m left join team t",
+            countQuery = "select count(*) from member",
+            nativeQuery = true)
+    Page<MemberProjection> findByNativeProjection(Pageable pageable);
 }

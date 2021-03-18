@@ -2,20 +2,21 @@ package study.datajpa.entity;
 
 
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
+
+@EntityListeners(AuditingEntityListener.class)
 @Entity
-@Getter
-@Setter
-@ToString(of = {"id", "username", "age"})
+@Getter @Setter @ToString(of = {"id", "username", "age"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @NamedQuery(
         name = "Member.findByUsername",
         query = "select m from Member m where m.username = :username"
 )
 @NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
-public class Member {
+public class Member extends BaseEntity{
 
     @Id
     @GeneratedValue
